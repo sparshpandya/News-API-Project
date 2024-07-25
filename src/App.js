@@ -1,25 +1,28 @@
-import logo from './logo.svg';
+
+import React, { createContext, useState } from 'react';
 import './App.css';
+import Navbar from './Navbar';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+
+export const NewsContext = createContext();
+export const UpdateNewsContext = createContext();
 
 function App() {
+  const [showNews, setNews] = useState([]);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <React.StrictMode>
+      <Router>
+        <NewsContext.Provider value={showNews}>
+          <UpdateNewsContext.Provider value={setNews}>
+            <Navbar />
+            <ToastContainer />
+          </UpdateNewsContext.Provider>
+        </NewsContext.Provider>
+      </Router>
+    </React.StrictMode>
+  )
 }
 
 export default App;
+
