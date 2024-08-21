@@ -4,7 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { NewsContext, UpdateNewsContext } from './App';
 import { Audio } from 'react-loader-spinner';
 import Footer from './Footer';
-const ShowEverything = () => {
+const ShowSources = () => {
     const showNews = useContext(NewsContext);
     const setNews = useContext(UpdateNewsContext);
     const [loading, setLoading] = useState(false);
@@ -13,13 +13,11 @@ const ShowEverything = () => {
     const fetchNews = async () => {
         try {
             setLoading(true);
-            const response = await fetch("https://newsapi.org/v2/everything?q=keyword&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43");
+            const response = await fetch("https://newsapi.org/v2/top-headlines/sources?apiKey=f0ea0013bb014ec6b2cd5c42525f5c43");
             const result = await response.json();
-            if (result.articles) {
+            if (result.sources) {
                 // returning the news array
-                
-                clearTimeout();
-                return result.articles;
+                return result.sources;
             } else {
                 console.log("Oops! Something went wrong, please try again after some time!!");
             }
@@ -65,7 +63,6 @@ const ShowEverything = () => {
         });
             setNews(filteredNews);
 
-        clearTimeout();
     }
 
     // date function to show the readable date string
@@ -103,15 +100,15 @@ const ShowEverything = () => {
                         wrapperStyle={{}}
                         wrapperClass="wrapper-class"
                         visible={true}
-                    />) : showNews && showNews.length > 0 ? (showNews?.map((article, index) => (
+                    />) : showNews && showNews.length > 0 ? (showNews?.map((source, index) => (
                     <div className="col-md-4 mb-4" key={index}>
                         <div className="card">
-                            <img src={article.urlToImage} className="card-img-top" alt={article.title} />
                             <div className="card-body">
-                                <h5 className="card-title">{article.title}</h5>
-                                <p className="card-text">{article.description}</p>
-                                <p className="card-text">{`Published On: ${formatDate(article.publishedAt)}`}</p>
-                                <a href={article.url} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                                <h5 className="card-title">{source.name}</h5>
+                                <p className="card-text">{`Category: ${source.category}`}</p>
+
+                                <p className="card-text">{source.description}</p>
+                                <a href={source.url} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
                                     Read more
                                 </a>
                             </div>
@@ -125,4 +122,4 @@ const ShowEverything = () => {
     );
 }
 
-export default ShowEverything
+export default ShowSources
