@@ -12,6 +12,7 @@ const ShowHeadlines = () => {
   const { countryCode, category } = useParams();
   const [loading, setLoading] = useState(false);
   const [countries, updateCountries] = useState([]);
+  const [message, showMessage] = useState({ searchQuery: '', country: 'Canada', category: 'General' });
 
   // function to fetch the data from the news API
   const fetchNews = async () => {
@@ -21,7 +22,7 @@ const ShowHeadlines = () => {
       const result = await response.json();
       if (result.articles) {
         console.log(result.articles);
-        
+
         // returning the news array
         return result.articles;
       } else {
@@ -30,6 +31,23 @@ const ShowHeadlines = () => {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  const showMsgForSelect = async (evt) => {
+    const { name } = evt.target;
+    const value = evt.target.options[evt.target.selectedIndex].text
+    showMessage(prevState => ({
+      ...prevState,
+      [name]: value
+    }))
+  }
+
+  const showMsgForTerm = async (evt) => {
+    const { value } = evt.target;
+    showMessage(prevState => ({
+      ...prevState,
+      searchQuery: value
+    }))
   }
 
   const fetchCountries = async () => {
@@ -78,6 +96,15 @@ const ShowHeadlines = () => {
     showData();
   }, [countryCode]);
 
+  // loading the news based on category selected
+  useEffect(() => {
+    const showData = async () => {
+      const allNews = await fetchNews();
+      setNews(allNews);
+    }
+    showData();
+  }, [category]);
+
   const showHeadlinesByCountry = (code) => {
     navigate(`/topHeadlines/${code}/${category}`);
   }
@@ -90,8 +117,7 @@ const ShowHeadlines = () => {
   const showNewsByTerm = async (evt) => {
     evt.preventDefault();
     const allNews = await fetchNews();
-    const form = document.forms.searchNews;
-    const searchTerm = form.searchQuery.value.toLowerCase();
+    const searchTerm = evt.target.value.toLowerCase();
     const filteredNews = await allNews?.filter(news => {
       if (searchTerm === "") {
         return allNews;
@@ -114,8 +140,9 @@ const ShowHeadlines = () => {
     <div className="App">
       <div className="container">
         <header className="my-4">
+        <h2>Explore Top Headlines</h2>
           <form className="form-inline my-4" name='searchNews'>
-            <select className='form-control' onChange={(evt) => { evt.preventDefault(); showHeadlinesByCountry(evt.target.value) }} value={countryCode} name='country' id='country'>
+            <select className='form-control' onChange={(evt) => { evt.preventDefault(); showHeadlinesByCountry(evt.target.value); showMsgForSelect(evt) }} value={countryCode} name='country' id='country'>
               {countries.map((country, index) => {
                 const { common } = country.name;
                 const code = country.altSpellings[0].toLowerCase();
@@ -124,7 +151,7 @@ const ShowHeadlines = () => {
                 )
               })}
             </select>
-            <select className='form-control' onChange={(evt) => { evt.preventDefault(); showHeadlinesByCategory(evt.target.value) }} value={category} name='country' id='country'>
+            <select className='form-control' onChange={(evt) => { evt.preventDefault(); showHeadlinesByCategory(evt.target.value); showMsgForSelect(evt) }} value={category} name='category' id='category'>
 
               <option value="business">Business</option>
               <option value="entertainment">Entertainment</option>
@@ -138,17 +165,21 @@ const ShowHeadlines = () => {
               type="text"
               name="searchQuery"
               className="form-control mr-sm-2"
-              onChange={showNewsByTerm}
+              onChange={(evt) => { showNewsByTerm(evt); showMsgForTerm(evt) }}
               placeholder="Search news"
               aria-label="Search"
               autoComplete='off'
               autoFocus
             />
-            <button type="submit" onClick={showNewsByTerm} className="btn btn-outline-success my-2 my-sm-0">
+            <button type="submit" name='searchQuery' onClick={showNewsByTerm} className="btn btn-outline-success my-2 my-sm-0">
               Search
             </button>
           </form>
         </header>
+        <h4>{
+          message.searchQuery ?
+            (`Showing Results For ${message.searchQuery} In ${message.country} For ${message.category} Category`)
+            : (`Showing Results For ${message.country} For ${message.category} Category`)}</h4>
         <div className="row">
           {loading ? (<Audio
             height="100"

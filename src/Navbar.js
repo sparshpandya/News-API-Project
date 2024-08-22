@@ -23,7 +23,7 @@ const Navbar = () => {
                             <Link className="nav-link" to='/topHeadlines/ca/general'>Top Headlines <span className="sr-only">(current)</span></Link>
                         </li>
                         <li className="nav-item active">
-                            <Link className="nav-link" to='/sources'>Sources <span className="sr-only">(current)</span></Link>
+                            <Link className="nav-link" to='/sources/ca'>Sources <span className="sr-only">(current)</span></Link>
                         </li>
                     </ul>
                 </div>
@@ -33,7 +33,7 @@ const Navbar = () => {
                 <Routes>
                     <Route path='/' element={<ShowEverything />}></Route>
                     <Route path='/topHeadlines/:countryCode/:category' element={<ShowHeadlines />}></Route>
-                    <Route path='/sources' element={<ShowSources />}></Route>
+                    <Route path='/sources/:countryCode' element={<ShowSources />}></Route>
                     <Route path='*' element={<PageNotFound />}></Route>
                 </Routes>
         </div>
