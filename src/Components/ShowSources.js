@@ -1,37 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { NewsContext, UpdateNewsContext } from './App';
-import { Audio } from 'react-loader-spinner';
+import React, { useEffect, useState } from 'react';
 import Footer from './Footer';
 import { useNavigate, useParams } from 'react-router-dom';
+import Loader from './Loader';
+import FetchCountries from './FetchCountries';
+import FetchData from './FetchData';
 const ShowSources = () => {
-    const showNews = useContext(NewsContext);
-    const setNews = useContext(UpdateNewsContext);
+    const [showSources, setSources] = useState([]);
     const { countryCode } = useParams();
     const navigate = useNavigate();
     const [countries, updateCountries] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, showMessage] = useState({ searchQuery: '', country: 'Canada' });
-
-    // function to fetch the data from the news API
-    const fetchNews = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43`);
-            const result = await response.json();
-            if (result.sources) {
-                // returning the news array
-                console.log(result.sources);
-
-                return result.sources;
-            } else {
-                console.log("Oops! Something went wrong, please try again after some time!!");
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    }
 
     const showMsgForSelect = async (evt) => {
         const { name } = evt.target;
@@ -50,28 +29,17 @@ const ShowSources = () => {
         }))
     }
 
-    const fetchCountries = async () => {
-        try {
-            const response = await fetch("https://restcountries.com/v3.1/all");
-            const result = await response.json();
-            if (result) {
-                // returning the news array
-                return result;
-            } else {
-                toast("Oops! Something went wrong, please try again after some time!!");
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    }
-
-    // loading the news data when the page is loaded
+    // loading the source data when the page is loaded
     useEffect(() => {
         const showData = async () => {
-            const allNews = await fetchNews();
-            const countryNames = await fetchCountries();
-            setNews(allNews);
+            setLoading(true);
+            const countryNames = await FetchCountries();
             updateCountries(countryNames);
+            const data = await FetchData(`https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43`);
+            if (data) {
+                const allSources = data.sources;
+                setSources(allSources);
+            }
         }
 
         showData();
@@ -87,29 +55,38 @@ const ShowSources = () => {
         }
     }, [loading]);
 
-    // loading the news based on countries selected
+    // loading the sources based on countries selected
     useEffect(() => {
         const showData = async () => {
-            const allNews = await fetchNews();
-            setNews(allNews);
+            setLoading(true);
+            const data = await FetchData(`https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43`);
+            if (data) {
+                const allSources = data.sources;
+                setSources(allSources);
+            }
         }
         showData();
     }, [countryCode]);
 
     // filtering the data based on the user input
-    const showNewsByTerm = async (evt) => {
+    const showSourcesByTerm = async (evt) => {
         evt.preventDefault();
-        const allNews = await fetchNews();
-        const searchTerm = evt.target.value.toLowerCase();
-        const filteredNews = await allNews?.filter(news => {
-            if (searchTerm === "") {
-                return allNews;
-            } else {
-                const matchedNews = news.name.toLowerCase();
-                return matchedNews.includes(searchTerm);
-            }
-        });
-        setNews(filteredNews);
+        setLoading(true);
+        const data = await FetchData(`https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43`);
+        if (data) {
+            const allSources = data.sources;
+
+            const searchTerm = evt.target.value.toLowerCase();
+            const filteredSources = await allSources?.filter(source => {
+                if (searchTerm === "") {
+                    return allSources;
+                } else {
+                    const matchedSources = source.name.toLowerCase();
+                    return matchedSources.includes(searchTerm);
+                }
+            });
+            setSources(filteredSources);
+        }
 
     }
 
@@ -117,18 +94,12 @@ const ShowSources = () => {
         navigate(`/sources/${countryName}`);
     }
 
-    // date function to show the readable date string
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
-    };
-
     return (
         <div className="App">
             <div className="container">
                 <header className="my-4">
-                <h2>Explore Our Sources</h2>
-                    <form className="form-inline my-4" name='searchNews'>
+                    <h2>Explore Our Sources</h2>
+                    <form className="form-inline my-4" name='searchSources'>
                         <select className='form-control' onChange={(evt) => { evt.preventDefault(); showSourcesByCountry(evt.target.value); showMsgForSelect(evt) }} value={countryCode} name='country' id='country'>
                             {countries.map((country, index) => {
                                 const { common } = country.name;
@@ -142,13 +113,13 @@ const ShowSources = () => {
                             type="text"
                             name="searchQuery"
                             className="form-control mr-sm-2"
-                            onChange={(evt) => { showNewsByTerm(evt); showMsgForTerm(evt); }}
+                            onChange={(evt) => { showSourcesByTerm(evt); showMsgForTerm(evt); }}
                             autoComplete='off'
-                            placeholder="Search news"
+                            placeholder="Search sources"
                             aria-label="Search"
                             autoFocus
                         />
-                        <button type="submit" onClick={showNewsByTerm} className="btn btn-outline-success my-2 my-sm-0">
+                        <button type="submit" onClick={showSourcesByTerm} className="btn btn-outline-success my-2 my-sm-0">
                             Search
                         </button>
                     </form>
@@ -159,15 +130,7 @@ const ShowSources = () => {
                         : (`Showing Results For ${message.country}`)}</h4>
 
                 <div className="row">
-                    {loading ? (<Audio
-                        height="100"
-                        width="100"
-                        color="#4fa94d"
-                        ariaLabel="audio-loading"
-                        wrapperStyle={{}}
-                        wrapperClass="wrapper-class"
-                        visible={true}
-                    />) : showNews && showNews.length > 0 ? (showNews?.map((source, index) => (
+                    {loading ? (<Loader />) : showSources && showSources.length > 0 ? (showSources?.map((source, index) => (
                         <div className="col-md-4 mb-4" key={index}>
                             <div className="card">
                                 <div className="card-body">
