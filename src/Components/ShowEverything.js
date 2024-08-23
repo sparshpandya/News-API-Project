@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { NewsContext, UpdateNewsContext } from '../App';
 import Footer from './Footer';
 import Loader from './Loader';
@@ -11,12 +9,18 @@ const ShowEverything = () => {
     const setNews = useContext(UpdateNewsContext);
     const [loading, setLoading] = useState(false);
     const [message, showMessage] = useState('');
+    // getting the API Key from the .env file
+    const apiKey = process.env.REACT_APP_API_KEY;
+    // API URL
+    const apiUrl = `https://newsapi.org/v2/everything?q=keyword&apiKey=${apiKey}`;
+    const fallBackImg = 'https://via.placeholder.com/300x200/000000/FFFFFF?text=No+Image+Available';
+
 
     // loading the news data when the page is loaded
     useEffect(() => {
         const showData = async () => {
             setLoading(true);
-            const data = await FetchData("https://newsapi.org/v2/everything?q=keyword&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43");
+            const data = await FetchData(apiUrl);
             if (data) {
                 const allNews = data.articles;
                 setNews(allNews);
@@ -40,7 +44,7 @@ const ShowEverything = () => {
     const showNewsByTerm = async (evt) => {
         evt.preventDefault();
         setLoading(true);
-        const data = await FetchData("https://newsapi.org/v2/everything?q=keyword&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43");
+        const data = await FetchData(apiUrl);
         if (data) {
             const allNews = data.articles;
             const searchTerm = evt.target.value.toLowerCase();
@@ -88,22 +92,32 @@ const ShowEverything = () => {
                         (`Showing Results For ${message}`)
                         : ''}</h4>
                 <div className="row">
-                    {loading ? (<Loader />) : showNews && showNews.length > 0 ? (showNews?.map((article, index) => (
-                        <div className="col-md-4 mb-4" key={index}>
-                            <div className="card">
-                                <img src={article.urlToImage} className="card-img-top" alt={article.title} />
-                                <div className="card-body">
-                                    <h5 className="card-title">{article.title}</h5>
-                                    <p className="card-text">{article.description}</p>
-                                    <p className="card-text">{`Published On: ${FormatDate(article.publishedAt)}`}</p>
-                                    <a href={article.url} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
-                                        Read more
-                                    </a>
+                    {loading ? (
+                        <Loader />
+                    ) : showNews && showNews.length > 0 ? (
+                        showNews?.map((article, index) => (
+                            <div className="col-md-4 mb-4" key={index}>
+                                <div className="card h-100 d-flex flex-column">
+                                    <img src={article.urlToImage || fallBackImg}
+                                    className="card-img-top" alt={article.title || 'No Title'} style={{ height: '200px', objectFit: 'cover' }} />
+                                    <div className="card-body flex-grow-1 d-flex flex-column">
+                                        <h5 className="card-title">{article.title}</h5>
+                                        <p className="card-text">{article.description || 'No Description'}</p>
+                                        <p className="card-text mt-auto">{`Published On: ${FormatDate(article.publishedAt)}` || 'No Date Specified'}</p>
+                                        <a href={article.url} className="btn btn-primary mt-3" target="_blank" rel="noopener noreferrer">
+                                            Read more
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+                        ))
+                    ) : (
+                        <div>
+                            <h4 className="text-center text-dark m-2">No Data Found. Please Try Again Later!!</h4>
                         </div>
-                    ))) : (<div><h4 className='text-center text-dark m-2'>No Data Found For This Country. Please Try Again Later!!</h4></div>)}
+                    )}
                 </div>
+
             </div>
             <Footer />
         </div>

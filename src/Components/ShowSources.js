@@ -11,6 +11,10 @@ const ShowSources = () => {
     const [countries, updateCountries] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, showMessage] = useState({ searchQuery: '', country: 'Canada' });
+    // getting the API Key from the .env file
+    const apiKey = process.env.REACT_APP_API_KEY;
+    // API URL
+    const apiUrl = `https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=${apiKey}`;
 
     const showMsgForSelect = async (evt) => {
         const { name } = evt.target;
@@ -35,7 +39,7 @@ const ShowSources = () => {
             setLoading(true);
             const countryNames = await FetchCountries();
             updateCountries(countryNames);
-            const data = await FetchData(`https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43`);
+            const data = await FetchData(apiUrl);
             if (data) {
                 const allSources = data.sources;
                 setSources(allSources);
@@ -59,7 +63,7 @@ const ShowSources = () => {
     useEffect(() => {
         const showData = async () => {
             setLoading(true);
-            const data = await FetchData(`https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43`);
+            const data = await FetchData(apiUrl);
             if (data) {
                 const allSources = data.sources;
                 setSources(allSources);
@@ -72,7 +76,7 @@ const ShowSources = () => {
     const showSourcesByTerm = async (evt) => {
         evt.preventDefault();
         setLoading(true);
-        const data = await FetchData(`https://newsapi.org/v2/top-headlines/sources?country=${countryCode}&apiKey=f0ea0013bb014ec6b2cd5c42525f5c43`);
+        const data = await FetchData(apiUrl);
         if (data) {
             const allSources = data.sources;
 
@@ -130,22 +134,37 @@ const ShowSources = () => {
                         : (`Showing Results For ${message.country}`)}</h4>
 
                 <div className="row">
-                    {loading ? (<Loader />) : showSources && showSources.length > 0 ? (showSources?.map((source, index) => (
-                        <div className="col-md-4 mb-4" key={index}>
-                            <div className="card">
-                                <div className="card-body">
-                                    <h5 className="card-title">{source.name}</h5>
-                                    <p className="card-text">{`Category: ${source.category}`}</p>
-
-                                    <p className="card-text">{source.description}</p>
-                                    <a href={source.url} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
-                                        Read more
-                                    </a>
+                    {loading ? (
+                        <Loader />
+                    ) : showSources && showSources.length > 0 ? (
+                        showSources.map((source, index) => (
+                            <div className="col-md-4 mb-4" key={index}>
+                                <div className="card h-100 d-flex flex-column">
+                                    <div className="card-body flex-grow-1 d-flex flex-column">
+                                        <h5 className="card-title">{source.name || 'No Name'}</h5>
+                                        <p className="card-text">{`Category: ${source.category}` || 'No Category'}</p>
+                                        <p className="card-text">{source.description || 'No Description'}</p>
+                                        <a
+                                            href={source.url}
+                                            className="btn btn-primary mt-auto"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Read more
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+                        ))
+                    ) : (
+                        <div>
+                            <h4 className="text-center text-dark m-2">
+                                No Data Found For This Country. Please Try Again Later!!
+                            </h4>
                         </div>
-                    ))) : (<div><h4 className='text-center text-dark m-2'>No Data Found For This Country. Please Try Again Later!!</h4></div>)}
+                    )}
                 </div>
+
             </div>
             <Footer />
         </div>

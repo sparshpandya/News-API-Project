@@ -2,8 +2,9 @@ import React from 'react'
 
 // fetching all the countries from the API
 const FetchCountries = async() => {
+    const apiUrl = "https://restcountries.com/v3.1/all";
     try {
-        const response = await fetch("https://restcountries.com/v3.1/all");
+        const response = await fetch(apiUrl);
         const result = await response.json();
         if (result) {
           // returning the news array
